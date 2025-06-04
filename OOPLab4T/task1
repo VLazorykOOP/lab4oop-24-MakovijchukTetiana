@@ -1,0 +1,161 @@
+#include <iostream>
+using namespace std;
+
+class VectorULong {
+private:
+    unsigned long* data;
+    size_t size;
+    int State;
+    static int object_count;
+
+public:
+    VectorULong() : size(1), State(0) {
+        data = new unsigned long[1]{};
+        ++object_count;
+    }
+
+    VectorULong(size_t s) : size(s), State(0) {
+        data = new unsigned long[size]{};
+        ++object_count;
+    }
+
+    VectorULong(size_t s, unsigned long value) : size(s), State(0) {
+        data = new unsigned long[size];
+        for (size_t i = 0; i < size; ++i) data[i] = value;
+        ++object_count;
+    }
+
+    VectorULong(const VectorULong& other) : size(other.size), State(other.State) {
+        data = new unsigned long[size];
+        for (size_t i = 0; i < size; ++i) data[i] = other.data[i];
+        ++object_count;
+    }
+
+    ~VectorULong() {
+        delete[] data;
+        --object_count;
+    }
+
+    VectorULong& operator=(const VectorULong& other) {
+        if (this != &other) {
+            delete[] data;
+            size = other.size;
+            State = other.State;
+            data = new unsigned long[size];
+            for (size_t i = 0; i < size; ++i) data[i] = other.data[i];
+        }
+        return *this;
+    }
+
+    VectorULong& operator++() {
+        for (size_t i = 0; i < size; ++i) ++data[i];
+        return *this;
+    }
+
+    VectorULong operator++(int) {
+        VectorULong temp(*this);
+        ++(*this);
+        return temp;
+    }
+
+    VectorULong& operator--() {
+        for (size_t i = 0; i < size; --i) --data[i];
+        return *this;
+    }
+
+    VectorULong operator--(int) {
+        VectorULong temp(*this);
+        --(*this);
+        return temp;
+    }
+
+    bool operator!() const {
+        return size == 0;
+    }
+
+    VectorULong operator~() const {
+        VectorULong temp(*this);
+        for (size_t i = 0; i < size; ++i) temp.data[i] = ~data[i];
+        return temp;
+    }
+
+    VectorULong operator-() const {
+        VectorULong temp(*this);
+        for (size_t i = 0; i < size; ++i) temp.data[i] = -(data[i]);
+        return temp;
+    }
+
+    void operator()() const {
+        for (size_t i = 0; i < size; ++i) cout << data[i] << " ";
+        cout << endl;
+    }
+
+    unsigned long& operator[](size_t index) {
+        if (index >= size) {
+            State = 1;
+            return data[size - 1];
+        }
+        return data[index];
+    }
+
+    friend ostream& operator<<(ostream& os, const VectorULong& v) {
+        for (size_t i = 0; i < v.size; ++i) os << v.data[i] << " ";
+        return os;
+    }
+
+    friend istream& operator>>(istream& is, VectorULong& v) {
+        for (size_t i = 0; i < v.size; ++i) is >> v.data[i];
+        return is;
+    }
+
+    static int getObjectCount() {
+        return object_count;
+    }
+
+    void print() const {
+        for (size_t i = 0; i < size; ++i) cout << data[i] << " ";
+        cout << endl;
+    }
+};
+
+int VectorULong::object_count = 0;
+
+int main() {
+    size_t n;
+    cout << "Введіть кількість елементів: ";
+    cin >> n;
+
+    VectorULong v1(n);
+
+    cout << "Введіть елементи вектора: ";
+    cin >> v1;
+
+    cout << "Вектор v1: " << v1 << endl;
+
+    ++v1;
+    cout << "Після ++v1: " << v1 << endl;
+
+    v1++;
+    cout << "Після v1++: " << v1 << endl;
+
+    --v1;
+    cout << "Після --v1: " << v1 << endl;
+
+    v1--;
+    cout << "Після v1--: " << v1 << endl;
+
+    cout << "Логічне заперечення (!v1): " << (!v1 ? "true" : "false") << endl;
+
+    cout << "Побітове заперечення (~v1): " << (~v1) << endl;
+
+    cout << "Унарний мінус (-v1): " << (-v1) << endl;
+
+    cout << "Виклик вектора як функції: ";
+    v1();
+
+    cout << "Доступ до елемента v1[2]: " << v1[2] << endl;
+
+    cout << "Кількість об'єктів VectorULong: " << VectorULong::getObjectCount() << endl;
+
+    return 0;
+}
