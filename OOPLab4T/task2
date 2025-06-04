@@ -1,0 +1,114 @@
+#include <iostream>
+#include <map>
+#include <string>
+#include <limits> // Для std::numeric_limits
+
+enum ErrorCode {
+    OK = 0,
+    NOT_FOUND
+};
+
+class BookCatalog {
+private:
+    std::map<int, std::string> catalog;
+    ErrorCode codeError = OK;
+
+public:
+    // Додавання книги
+    void add(int inventoryNumber, const std::string& bookName) {
+        catalog[inventoryNumber] = bookName;
+    }
+
+    // Перевантаження [] для доступу за інвентарним номером
+    std::string operator[](int inventoryNumber) {
+        auto it = catalog.find(inventoryNumber);
+        if (it != catalog.end()) {
+            codeError = OK;
+            return it->second;
+        } else {
+            codeError = NOT_FOUND;
+            return "";
+        }
+    }
+
+    // Перевантаження () для альтернативного доступу
+    std::string operator()(int inventoryNumber) {
+        return (*this)[inventoryNumber];
+    }
+
+    // Отримання коду помилки
+    ErrorCode getCodeError() const {
+        return codeError;
+    }
+
+    // Виведення каталогу
+    friend std::ostream& operator<<(std::ostream& out, const BookCatalog& catalog) {
+        for (const auto& pair : catalog.catalog) {
+            out << "Інв. № " << pair.first << " — " << pair.second << std::endl;
+        }
+        return out;
+    }
+
+    // Введення каталогу з перевіркою правильності вводу
+    friend std::istream& operator>>(std::istream& in, BookCatalog& catalog) {
+        int n;
+        std::cout << "Скільки книг внести? ";
+        in >> n;
+
+        while (in.fail() || n <= 0) {
+            std::cout << "Помилка! Введіть правильне число: ";
+            in.clear();
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            in >> n;
+        }
+
+        for (int i = 0; i < n; ++i) {
+            int number;
+            std::string name;
+
+            std::cout << "Інв. №: ";
+            in >> number;
+            while (in.fail()) {
+                std::cout << "Помилка! Введіть ЧИСЛО для інвентарного номера: ";
+                in.clear();
+                in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                in >> number;
+            }
+
+            std::cout << "Назва: ";
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Очищення
+            std::getline(in, name);
+
+            catalog.add(number, name);
+        }
+
+        return in;
+    }
+};
+
+int main() {
+    BookCatalog library;
+    std::cin >> library;
+
+    std::cout << "\nВаш каталог:\n" << library;
+
+    int searchNumber;
+    std::cout << "Введіть інвентарний номер для пошуку: ";
+    std::cin >> searchNumber;
+
+    while (std::cin.fail()) {
+        std::cout << "Помилка! Введіть правильний інвентарний номер: ";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin >> searchNumber;
+    }
+
+    std::string title = library[searchNumber];
+    if (library.getCodeError() == OK) {
+        std::cout << "Назва книги: " << title << std::endl;
+    } else {
+        std::cout << "Книга з інв. № " << searchNumber << " не знайдена." << std::endl;
+    }
+
+    return 0;
+}
